@@ -50,6 +50,24 @@ async function run() {
       res.send(result)
     })
 
+    app.put('/crafts/:id', async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId (id)};
+      const options = {upsert : true};
+      const updatedCraft = req.body;
+      const craft = {
+        $set: {
+          itemName: updatedCraft.itemName,
+          subcategory: updatedCraft.subcategory,
+          price: updatedCraft.price,
+          image: updatedCraft.image,
+          description: updatedCraft.description,
+        }
+      }
+      const result = await craftCollection.updateOne(filter, craft, options );
+      res.send(result)      
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
