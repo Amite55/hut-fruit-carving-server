@@ -26,16 +26,25 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const craftCollection = client.db('craftsDB').collection('crafts');
+    const subcategoryCollection = client.db('craftsDB').collection('subcategory');
 
     app.get('/crafts', async (req, res) => {
-      const cursor = craftCollection.find();
-      const result = await cursor.toArray();
+      const result = await craftCollection.find().toArray();
       res.send(result)
     })
 
+    // subcategory wise art and craft ==
+    app.get('/subcategoryCrafts/:categoryName', async (req, res) => {
+      const categoryName = req.params.categoryName;
+      const query = { subcategory: categoryName};
+      const result = await craftCollection.find(query).toArray();
+      res.send(result);
+    })
+
+// details page ======= 
     app.get('/crafts/:id', async(req, res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId (id)};
@@ -51,26 +60,25 @@ async function run() {
 
     app.post('/crafts', async (req, res) => {
       const newCrafts = req.body;
-      console.log(newCrafts);
       const result = await craftCollection.insertOne(newCrafts);
       res.send(result)
     })
 
     app.put('/crafts/:id', async(req, res) => {
       const id = req.params.id;
-      const filter = {_id: new ObjectId (id)};
-      const options = {upsert : true};
       const updatedCraft = req.body;
-      const craft = {
+      const filter = {_id: new ObjectId (id)};
+      const updatedDoc = {
         $set: {
-          itemName: updatedCraft.itemName,
-          subcategory: updatedCraft.subcategory,
-          price: updatedCraft.price,
-          image: updatedCraft.image,
-          description: updatedCraft.description,
+          ...updatedCraft
+          // itemName: updatedCraft.itemName,
+          // subcategory: updatedCraft.subcategory,
+          // price: updatedCraft.price,
+          // image: updatedCraft.image,
+          // description: updatedCraft.description,
         }
       }
-      const result = await craftCollection.updateOne(filter, craft, options );
+      const result = await craftCollection.updateOne(filter, updatedDoc );
       res.send(result)      
     })
 
@@ -82,9 +90,15 @@ async function run() {
       res.send(result)
     }) 
 
+    // get the all subcategory ===
+    app.get('/subcategory', async (req, res) => {
+      const result = await subcategoryCollection.find().toArray();
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
